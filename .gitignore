@@ -1,0 +1,52 @@
+# Node
+node_modules/
+npm-debug.log*
+dist/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Terraform
+secrets.tfvars
+**/.terraform/
+*.tfplan
+*.tfstate
+*.tfstate.backup
+!terraform.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+crash.log
+crash.*.log
+
+# Helm
+*.tgz
+
+# Kubernetes secrets
+*-secret.yaml
+*-secrets.yaml
+
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+
+# Logs
+*.log
+logs/
+
+# Misc
+.envrc
+*.bak
+*.tmp

@@ -8,8 +8,8 @@ A minimal Node.js HTTP application containerised with Docker and deployed to a p
 >
 > | Endpoint | Description |
 > |---|---|
-> | `http://azure-web-app.57.162.240.11.nip.io/` | Hello World response |
-> | `http://azure-web-app.57.162.240.11.nip.io/health` | JSON health payload |
+> | [http://azure-web-app.57.162.240.11.nip.io/](http://azure-web-app.57.162.240.11.nip.io/) | Hello World response |
+> | [http://azure-web-app.57.162.240.11.nip.io/health](http://azure-web-app.57.162.240.11.nip.io/health) | JSON health payload |
 
 ---
 

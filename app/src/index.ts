@@ -16,5 +16,6 @@ const shutdown = (signal: string): void => {
   setTimeout(() => process.exit(1), 10_000);
 };
 
+
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT',  () => shutdown('SIGINT'));

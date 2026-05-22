@@ -1,0 +1,14 @@
+apiVersion: v2
+name: azure-web-app
+description: >
+  Generic Helm chart for the azure-web-app application.
+  All resources are toggled via values.yaml.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - nodejs
+  - azure
+  - aks
+maintainers:
+  - name: platform-team

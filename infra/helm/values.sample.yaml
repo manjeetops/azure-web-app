@@ -1,0 +1,154 @@
+# ── Workload ──────────────────────────────────────────────────────────────────
+# Set to StatefulSet to render statefulset.yaml instead of deployment.yaml
+workload:
+  type: Deployment
+
+replicaCount: 1
+
+# ── Image ─────────────────────────────────────────────────────────────────────
+# repository and tag are overridden by argocd/values.yaml on each deployment
+image:
+  repository: ""
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# ── Service Account ───────────────────────────────────────────────────────────
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# ── Scheduling ────────────────────────────────────────────────────────────────
+tolerations: []
+nodeSelector: {}
+affinity: {}
+
+# ── ConfigMap ─────────────────────────────────────────────────────────────────
+# When enabled, keys are injected as environment variables into the container
+configmap:
+  enabled: false
+  data: {}
+
+# ── Service ───────────────────────────────────────────────────────────────────
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+  protocol: TCP
+  annotations: {}
+
+# ── Ingress ───────────────────────────────────────────────────────────────────
+ingress:
+  enabled: false
+  className: kong
+  host: ""
+  tls: false
+  tlsSecretName: ""
+  annotations: {}
+
+# ── Resources ─────────────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 128Mi
+
+# ── Health Probes ─────────────────────────────────────────────────────────────
+# startup: blocks liveness/readiness until the app is up (failureThreshold * periodSeconds = 60s max)
+# liveness: restarts the container if it becomes unresponsive
+# readiness: removes the pod from Service endpoints until it can accept traffic
+probes:
+  startup:
+    path: /health
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 12
+  liveness:
+    path: /health
+    initialDelaySeconds: 0
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    path: /health
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# ── Autoscaling ───────────────────────────────────────────────────────────────
+# When enabled, the HPA manages replica count — replicaCount above is ignored
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# ── Pod Disruption Budget ─────────────────────────────────────────────────────
+# Ensures at least minAvailable pods stay running during node drains or rolling updates
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# ── ServiceMonitor ────────────────────────────────────────────────────────────
+# Tells Prometheus Operator to scrape this app's /metrics endpoint
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  namespace: monitoring
+  additionalLabels: {}
+
+podAnnotations: {}
+
+# ── Security Context ──────────────────────────────────────────────────────────
+# Pod-level: enforces non-root execution for all containers in the pod
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Container-level: drops all Linux capabilities and prevents privilege escalation
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+extraEnv: []
+
+# ── External Secret ───────────────────────────────────────────────────────────
+# Requires External Secrets Operator installed in the cluster.
+# When enabled, pulls secrets from the configured store (e.g. Azure Key Vault)
+# and creates a Kubernetes Secret automatically.
+externalSecret:
+  enabled: false
+  refreshInterval: 1h
+  secretStoreName: azure-kv-store    # name of the SecretStore / ClusterSecretStore
+  secretStoreKind: ClusterSecretStore
+  target:
+    name: ""                         # defaults to the chart fullname if left empty
+  data: []
+  # Example:
+  # - secretKey: DB_PASSWORD         # key name in the resulting Kubernetes Secret
+  #   remoteRef:
+  #     key: my-db-password          # secret name in Azure Key Vault
+
+# ── Network Policy ────────────────────────────────────────────────────────────
+networkPolicy:
+  enabled: false
+  ingressNamespace: kong
+  ingressPodLabels:
+    app.kubernetes.io/name: kong
+
+# ── StatefulSet ───────────────────────────────────────────────────────────────
+# Only used when workload.type is StatefulSet
+statefulset:
+  serviceName: ""
+  volumeClaimTemplates: []

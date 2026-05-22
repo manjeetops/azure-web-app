@@ -1,0 +1,118 @@
+workload:
+  type: Deployment
+
+replicaCount: 2
+
+image:
+  repository: imageregistryyy.azurecr.io/azure-web-app
+  tag: 378818c
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+tolerations: []
+# tolerations:
+#   - key: "dedicated"
+#     operator: "Equal"
+#     value: "app"
+#     effect: "NoSchedule"
+
+nodeSelector: {}
+affinity: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+  protocol: TCP
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: kong
+  host: azure-web-app.57.162.240.11.nip.io
+  tls: false
+  # Future improvement: Enable TLS with cert-manager
+  # tls: true
+  # tlsSecretName: azure-web-app-tls
+  # Additional annotations needed:
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod
+  annotations:
+    konghq.com/strip-path: "true"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 128Mi
+
+probes:
+  startup:
+    path: /health
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    failureThreshold: 12
+  liveness:
+    path: /health
+    initialDelaySeconds: 0
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    path: /health
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+extraEnv: []
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+configmap:
+  enabled: false
+
+externalSecret:
+  enabled: false
+
+serviceMonitor:
+  enabled: true
+
+networkPolicy:
+  enabled: true
+  ingressNamespace: kong
+  ingressPodLabels:
+    app.kubernetes.io/name: kong
+
+statefulset:
+  serviceName: ""
+  volumeClaimTemplates: []

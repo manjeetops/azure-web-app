@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  description: Root App of Apps project — restricted to managing ArgoCD Applications and AppProjects in the argocd namespace only.
+
+  sourceRepos:
+    - https://github.com/manjeetops/azure-web-app.git
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+
+  # Application and AppProject are cluster-scoped resources
+  clusterResourceWhitelist:
+    - group: argoproj.io
+      kind: Application
+    - group: argoproj.io
+      kind: AppProject

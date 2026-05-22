@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: azure-web-app
+  namespace: argocd
+  # Ensures Kubernetes resources are deleted when this Application is removed from git
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: azure-web-app
+
+  # Multi-source: source 1 creates a named reference ($values) to the repo root,
+  # so source 2 can load the values file from the same repo without repeating the repoURL.
+  sources:
+    - repoURL: https://github.com/manjeetops/azure-web-app.git
+      targetRevision: main
+      ref: values   # named reference — used as $values below
+
+    - repoURL: https://github.com/manjeetops/azure-web-app.git
+      targetRevision: main
+      path: infra/helm
+      helm:
+        valueFiles:
+          - $values/infra/argocd/applications/azure-web-app/values.prod.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: azure-web-app
+
+  syncPolicy:
+    automated:
+      prune: true      # delete resources removed from git
+      selfHeal: true   # revert manual changes made directly to the cluster
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true   # use SSA for cleaner field ownership and drift detection
+
+  # The HPA controller updates /spec/replicas at runtime — ignoring this prevents
+  # ArgoCD from flagging the app as OutOfSync every time the HPA scales the deployment
+  ignoreDifferences:
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+      jsonPointers:
+        - /spec/replicas

@@ -1,0 +1,41 @@
+# ── App of Apps — Root Application ───────────────────────────────────────────
+# Apply BOTH files in this directory ONCE manually after ArgoCD is installed:
+#
+#   kubectl apply -f infra/argocd/apps/
+#
+# appproject-root.yaml must exist before root-app.yaml — applying the directory
+# applies both atomically, resolving the bootstrap ordering dependency.
+#
+# After this, ArgoCD manages everything. The root app watches
+# infra/argocd/applications/ in this repo; any Application or AppProject
+# manifest added there is automatically created by ArgoCD.
+# ──────────────────────────────────────────────────────────────────────────────
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+  namespace: argocd
+  # Finalizer ensures child apps are deleted when the root app is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: root
+
+  source:
+    repoURL: https://github.com/manjeetops/azure-web-app.git
+    targetRevision: main
+    # Root app watches this directory for child Application manifests
+    path: infra/argocd/applications
+    directory:
+      recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true       # Remove child apps deleted from git
+      selfHeal: true    # Revert manual changes to child apps
+    syncOptions:
+      - CreateNamespace=true

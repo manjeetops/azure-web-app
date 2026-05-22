@@ -1,0 +1,138 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+
+env:
+  ACR_LOGIN_SERVER:      ${{ secrets.ACR_LOGIN_SERVER }}
+  IMAGE_NAME:            azure-web-app
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ── PR only: Lint ─────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: app
+
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: app
+
+      - name: Type check
+        run: npm run typecheck
+        working-directory: app
+
+  # ── Merge only: Build and push image to ACR ──────────────────────────────────
+  build-and-push:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.event_name == 'push'
+    env:
+      AZURE_CLIENT_ID:       ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID:       ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure via OIDC
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ env.AZURE_CLIENT_ID }}
+          tenant-id:       ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name "${ACR_LOGIN_SERVER%%.*}"
+
+      - name: Set image tag
+        id: meta
+        run: |
+          SHORT_SHA="${{ github.sha }}"
+          echo "tag=${SHORT_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: ./app/Dockerfile
+          push: true
+          tags: |
+            ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
+            ${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=registry,ref=${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to:   type=registry,ref=${{ env.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          build-args: APP_VERSION=${{ steps.meta.outputs.tag }}
+
+  # ── Merge only: Update ArgoCD values with new image tag ──────────────────────
+  update-manifests:
+    name: Update Manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build-and-push
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install yq
+        uses: mikefarah/yq@v4.44.3
+
+      - name: Update image tag
+        run: |
+          yq e '.image.tag = "${{ needs.build-and-push.outputs.image-tag }}"' -i \
+            infra/argocd/applications/azure-web-app/values.prod.yaml
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add infra/argocd/applications/azure-web-app/values.prod.yaml
+          if git diff --staged --quiet; then
+            echo "No changes — image tag already up to date."
+          else
+            git commit -m "ci: update image tag to ${{ needs.build-and-push.outputs.image-tag }} [skip ci]"
+            git push
+          fi

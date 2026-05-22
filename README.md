@@ -82,7 +82,7 @@ graph TD
 - **Resource Group** `azure-web-app` — container for all resources
 - **Virtual Network** `azure-web-app-vnet` — private network (10.0.0.0/8)
 - **Subnet** `aks-nodes` — AKS node subnet (10.240.0.0/16)
-- **Container Registry** `imageregistryyy` — stores Docker images
+- **Container Registry** `ACR` — stores Docker images
 - **AKS Cluster** `prod-aks-1` — private Kubernetes cluster
 - **Managed Identity** `prod-aks-1-kubelet-identity` — AcrPull, passwordless image pull from nodes
 - **Managed Identity** `github-ci-identity` — GitHub Actions → ACR push via OIDC

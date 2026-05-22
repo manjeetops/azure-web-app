@@ -89,6 +89,7 @@ externalSecret:
   enabled: false
 serviceMonitor:
   enabled: true
+  namespace: azure-web-app
 networkPolicy:
   enabled: true
   ingressNamespace: kong

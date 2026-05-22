@@ -20,7 +20,7 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"hello-world\", container!=\"\"}[2m])) by (pod)",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\\"azure-web-app\\", container!=\"\"}[2m])) by (pod)",
             "legendFormat": "{{ pod }}",
             "refId": "A"
           }
@@ -40,7 +40,7 @@
         },
         "targets": [
           {
-            "expr": "sum(container_memory_working_set_bytes{namespace=\"hello-world\", container!=\"\"}) by (pod)",
+            "expr": "sum(container_memory_working_set_bytes{namespace=\\"azure-web-app\\", container!=\"\"}) by (pod)",
             "legendFormat": "{{ pod }}",
             "refId": "A"
           }
@@ -66,7 +66,7 @@
         },
         "targets": [
           {
-            "expr": "count(kube_pod_status_phase{namespace=\"hello-world\", phase=\"Running\"})",
+            "expr": "count(kube_pod_status_phase{namespace=\\"azure-web-app\\", phase=\"Running\"})",
             "legendFormat": "Pods",
             "refId": "A"
           }
@@ -86,7 +86,7 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(http_requests_total{namespace=\"hello-world\"}[2m])) by (route, status_code)",
+            "expr": "sum(rate(http_requests_total{namespace=\\"azure-web-app\\"}[2m])) by (route, status_code)",
             "legendFormat": "{{ route }} {{ status_code }}",
             "refId": "A"
           }
@@ -106,17 +106,17 @@
         },
         "targets": [
           {
-            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{namespace=\"hello-world\"}[2m])) by (le))",
+            "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{namespace=\\"azure-web-app\\"}[2m])) by (le))",
             "legendFormat": "p50",
             "refId": "A"
           },
           {
-            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"hello-world\"}[2m])) by (le))",
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\\"azure-web-app\\"}[2m])) by (le))",
             "legendFormat": "p95",
             "refId": "B"
           },
           {
-            "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{namespace=\"hello-world\"}[2m])) by (le))",
+            "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{namespace=\\"azure-web-app\\"}[2m])) by (le))",
             "legendFormat": "p99",
             "refId": "C"
           }
@@ -144,7 +144,7 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"hello-world\",container!=\"\"}[2m])) / sum(kube_pod_container_resource_limits{namespace=\"hello-world\",resource=\"cpu\"})",
+            "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\\"azure-web-app\\",container!=\"\"}[2m])) / sum(kube_pod_container_resource_limits{namespace=\\"azure-web-app\\",resource=\"cpu\"})",
             "legendFormat": "CPU %",
             "refId": "A"
           }
@@ -172,7 +172,7 @@
         },
         "targets": [
           {
-            "expr": "sum(container_memory_working_set_bytes{namespace=\"hello-world\",container!=\"\"}) / sum(kube_pod_container_resource_limits{namespace=\"hello-world\",resource=\"memory\"})",
+            "expr": "sum(container_memory_working_set_bytes{namespace=\\"azure-web-app\\",container!=\"\"}) / sum(kube_pod_container_resource_limits{namespace=\\"azure-web-app\\",resource=\"memory\"})",
             "legendFormat": "Memory %",
             "refId": "A"
           }
@@ -198,7 +198,7 @@
         },
         "targets": [
           {
-            "expr": "sum(kube_pod_container_status_restarts_total{namespace=\"hello-world\"})",
+            "expr": "sum(kube_pod_container_status_restarts_total{namespace=\\"azure-web-app\\"})",
             "legendFormat": "Restarts",
             "refId": "A"
           }
@@ -223,7 +223,7 @@
         },
         "targets": [
           {
-            "expr": "sum(rate(container_network_receive_packets_total{namespace=\"hello-world\"}[2m]))",
+            "expr": "sum(rate(container_network_receive_packets_total{namespace=\\"azure-web-app\\"}[2m]))",
             "legendFormat": "pkt/s",
             "refId": "A"
           }

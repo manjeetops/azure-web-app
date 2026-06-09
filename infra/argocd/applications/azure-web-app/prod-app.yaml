@@ -13,11 +13,11 @@ spec:
   # so source 2 can load the values file from the same repo without repeating the repoURL.
   sources:
     - repoURL: https://github.com/manjeetops/azure-web-app.git
-      targetRevision: main
+      targetRevision: demo
       ref: values   # named reference — used as $values below
 
     - repoURL: https://github.com/manjeetops/azure-web-app.git
-      targetRevision: main
+      targetRevision: demo
       path: infra/helm
       helm:
         valueFiles:

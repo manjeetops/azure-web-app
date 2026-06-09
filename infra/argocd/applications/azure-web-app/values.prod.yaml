@@ -27,7 +27,7 @@ service:
 ingress:
   enabled: true
   className: kong
-  host: azure-web-app.57.162.240.11.nip.io
+  host: azure-web-app.4.236.228.113.nip.io
   tls: false
   # Future improvement: Enable TLS with cert-manager
   # tls: true
@@ -90,6 +90,9 @@ externalSecret:
 serviceMonitor:
   enabled: true
   namespace: azure-web-app
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 10s
 networkPolicy:
   enabled: true
   ingressNamespace: kong

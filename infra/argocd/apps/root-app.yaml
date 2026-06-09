@@ -23,7 +23,7 @@ spec:
 
   source:
     repoURL: https://github.com/manjeetops/azure-web-app.git
-    targetRevision: main
+    targetRevision: demo
     # Root app watches this directory for child Application manifests
     path: infra/argocd/applications
     directory:

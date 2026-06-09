@@ -45,6 +45,12 @@ resource "azurerm_kubernetes_cluster" "this" {
       "nodepool" = var.node_pool_name
       "env"      = var.environment
     }
+
+    upgrade_settings {
+      max_surge                     = "10%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   network_profile {
